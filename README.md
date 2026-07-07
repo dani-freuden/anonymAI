@@ -29,3 +29,23 @@ print(unscrub(result.scrubbed_text, result))
 ```
 
 See `examples/basic_usage.py` for a full walkthrough. Run tests with `pytest`.
+
+## Phase 2: HTTP API
+
+```
+uvicorn anonymai.api:app --reload
+```
+
+```
+curl -X POST localhost:8000/pii -H 'content-type: application/json' \
+  -d '{"text": "My name is Daniel and I am from Jerusalem."}'
+
+curl -X POST localhost:8000/scrub -H 'content-type: application/json' \
+  -d '{"text": "My name is Daniel and I am from Jerusalem.", "exclude_pii": ["LOCATION"]}'
+
+curl -X POST localhost:8000/unscrub -H 'content-type: application/json' \
+  -d '{"text": "<scrubbed_text from /scrub>", "mapping": {"<from /scrub response>": "..."}}'
+```
+
+The mapping returned by `/scrub` is not stored server-side — hold onto it
+and send it back to `/unscrub`.
