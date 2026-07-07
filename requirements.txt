@@ -1,0 +1,7 @@
+presidio-analyzer
+spacy
+phonenumbers
+pytest
+
+# after installing requirements, download the spaCy NLP model presidio uses:
+#   python -m spacy download en_core_web_sm

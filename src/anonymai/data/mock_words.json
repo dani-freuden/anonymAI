@@ -1,0 +1,63 @@
+{
+  "PERSON": [
+    "James", "Mary", "Robert", "Patricia", "John", "Jennifer", "Michael", "Linda",
+    "David", "Elizabeth", "William", "Barbara", "Richard", "Susan", "Joseph", "Jessica",
+    "Thomas", "Sarah", "Charles", "Karen", "Christopher", "Nancy", "Daniel", "Lisa",
+    "Matthew", "Betty", "Anthony", "Margaret", "Mark", "Sandra", "Donald", "Ashley",
+    "Steven", "Kimberly", "Paul", "Emily", "Andrew", "Donna", "Joshua", "Michelle",
+    "Kenneth", "Dorothy", "Kevin", "Carol", "Brian", "Amanda", "George", "Melissa",
+    "Timothy", "Deborah", "Ronald", "Stephanie", "Jason", "Rebecca", "Edward", "Sharon",
+    "Jeffrey", "Laura", "Ryan", "Cynthia", "Jacob", "Kathleen", "Gary", "Amy",
+    "Nicholas", "Angela", "Eric", "Shirley", "Jonathan", "Anna", "Stephen", "Brenda",
+    "Larry", "Pamela", "Justin", "Emma", "Scott", "Nicole", "Brandon", "Helen",
+    "Benjamin", "Samantha", "Samuel", "Katherine", "Gregory", "Christine", "Alexander", "Debra",
+    "Frank", "Rachel", "Raymond", "Carolyn", "Jack", "Janet", "Dennis", "Maria",
+    "Jerry", "Olivia", "Tyler", "Heather"
+  ],
+  "LOCATION": [
+    "Madrid", "Toronto", "Berlin", "Nairobi", "Osaka", "Lisbon", "Warsaw", "Cairo",
+    "Bogota", "Helsinki", "Manila", "Auckland", "Vienna", "Dublin", "Prague", "Athens",
+    "Oslo", "Zurich", "Brussels", "Budapest", "Bangkok", "Jakarta", "Santiago", "Lima",
+    "Seoul", "Riyadh", "Doha", "Amman", "Tunis", "Rabat", "Accra", "Lagos",
+    "Nagoya", "Kyoto", "Busan", "Chengdu", "Wuhan", "Kolkata", "Karachi", "Lahore",
+    "Dhaka", "Yangon", "Hanoi", "Phnom Penh", "Vientiane", "Ulaanbaatar", "Almaty", "Tashkent",
+    "Baku", "Tbilisi", "Yerevan", "Minsk", "Kyiv", "Chisinau", "Bucharest", "Sofia",
+    "Zagreb", "Ljubljana", "Bratislava", "Vilnius", "Riga", "Tallinn", "Reykjavik", "Valletta",
+    "Nicosia", "Luxembourg City", "Monaco", "Andorra la Vella", "Bern", "Copenhagen", "Stockholm", "Gothenburg",
+    "Marseille", "Lyon", "Turin", "Naples", "Seville", "Porto", "Antwerp", "Rotterdam",
+    "Munich", "Hamburg", "Frankfurt", "Leipzig", "Krakow", "Gdansk", "Odessa", "Kharkiv",
+    "Montevideo", "Asuncion", "La Paz", "Quito", "Caracas", "San Jose", "Panama City", "Havana",
+    "Kingston", "Nassau", "Bridgetown", "Port of Spain"
+  ],
+  "ORGANIZATION": [
+    "Acme Corp", "Globex Industries", "Initech Solutions", "Umbrella Group", "Stark Enterprises",
+    "Wayne Holdings", "Wonka Manufacturing", "Cyberdyne Systems", "Hooli Technologies", "Massive Dynamic",
+    "Soylent Foods", "Aperture Labs", "Vandelay Industries", "Gringotts Financial", "Oscorp",
+    "Rekall Systems", "Tyrell Corporation", "Weyland Yutani", "Blue Sun Trading", "Sirius Cybernetics",
+    "Monarch Industries", "Praxis Ventures", "Nakatomi Trading", "Buy N Large", "Genco Pura",
+    "Sterling Cooper", "Dunder Mifflin", "Prestige Worldwide", "Los Pollos Hermanos", "Sabre Corp",
+    "Continental Holdings", "Northwind Traders", "Contoso Ltd", "Fabrikam Inc", "Adventure Works",
+    "Woodgrove Bank", "Litware Systems", "Tailspin Toys", "Blue Yonder Airlines", "Alpine Ski House",
+    "Fourth Coffee", "Graphic Design Institute", "Lucerne Publishing", "Margie Travel", "Nod Publishers",
+    "Proseware Inc", "Relecloud", "School of Fine Art", "Trey Research", "Wide World Importers",
+    "Cascade Robotics", "Everest Analytics", "Meridian Capital", "Zenith Logistics", "Horizon Biotech",
+    "Vertex Materials", "Redwood Financial", "Summit Retail Group", "Cobalt Energy", "Ironclad Security",
+    "Silverline Media", "Brightpath Health", "Pinnacle Freight", "Anchor Insurance", "Skyline Aerospace",
+    "Bluebell Foods", "Crestwood Chemicals", "Falcon Robotics", "Granite Construction Group", "Harbor Shipping"
+  ],
+  "NRP": [
+    "American", "British", "French", "German", "Italian", "Spanish", "Portuguese", "Dutch",
+    "Belgian", "Swiss", "Austrian", "Polish", "Czech", "Hungarian", "Greek", "Turkish",
+    "Russian", "Ukrainian", "Swedish", "Norwegian", "Danish", "Finnish", "Irish", "Scottish",
+    "Welsh", "Canadian", "Mexican", "Brazilian", "Argentinian", "Chilean", "Peruvian", "Colombian",
+    "Venezuelan", "Cuban", "Jamaican", "Egyptian", "Moroccan", "Nigerian", "Kenyan", "Ethiopian",
+    "South African", "Ghanaian", "Indian", "Pakistani", "Bangladeshi", "Sri Lankan", "Nepalese", "Chinese",
+    "Japanese", "Korean", "Vietnamese", "Thai", "Filipino", "Indonesian", "Malaysian", "Singaporean",
+    "Australian", "New Zealander", "Israeli", "Palestinian", "Lebanese", "Jordanian", "Saudi", "Emirati",
+    "Iraqi", "Iranian", "Afghan", "Kazakh", "Uzbek", "Mongolian", "Catholic", "Protestant",
+    "Orthodox Christian", "Muslim", "Sunni", "Shia", "Jewish", "Buddhist", "Hindu", "Sikh",
+    "Taoist", "Confucian", "Baptist", "Methodist", "Lutheran", "Anglican", "Evangelical", "Agnostic",
+    "Atheist", "Conservative", "Liberal", "Socialist", "Libertarian", "Progressive", "Nationalist", "Republican",
+    "Democrat", "Green Party", "Centrist", "Independent"
+  ]
+}

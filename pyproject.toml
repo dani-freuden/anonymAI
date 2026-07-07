@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "anonymai"
+version = "1.0.0"
+description = "Scrub personal data from text before sending it to an LLM, then unscrub the reply."
+requires-python = ">=3.9"
+dependencies = [
+    "presidio-analyzer",
+    "spacy",
+    "phonenumbers",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+anonymai = ["data/*.json"]
