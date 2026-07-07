@@ -36,6 +36,9 @@ See `examples/basic_usage.py` for a full walkthrough. Run tests with `pytest`.
 uvicorn anonymai.api:app --reload
 ```
 
+Open http://localhost:8000 for a browser client (paste text, pick which PII
+categories to scrub, copy the result, unscrub it back).
+
 ```
 curl -X POST localhost:8000/pii -H 'content-type: application/json' \
   -d '{"text": "My name is Daniel and I am from Jerusalem."}'

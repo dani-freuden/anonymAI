@@ -1,4 +1,7 @@
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from anonymai.facade import find_pii, scrub, unscrub
@@ -36,3 +39,7 @@ def scrub_endpoint(req: ScrubRequest) -> ScrubResult:
 def unscrub_endpoint(req: UnscrubRequest) -> dict[str, str]:
     result = ScrubResult(scrubbed_text=req.text, mapping=req.mapping)
     return {"text": unscrub(req.text, result)}
+
+
+_STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
+app.mount("/", StaticFiles(directory=_STATIC_DIR, html=True), name="static")
