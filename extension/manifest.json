@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "anonymAI",
+  "version": "1.0.0",
+  "description": "Scrub PII before sending to ChatGPT or Gemini, unscrub the reply.",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "http://localhost:8000/*",
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://gemini.google.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://gemini.google.com/*"
+      ],
+      "js": ["content.js"]
+    }
+  ]
+}

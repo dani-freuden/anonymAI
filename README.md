@@ -52,3 +52,25 @@ curl -X POST localhost:8000/unscrub -H 'content-type: application/json' \
 
 The mapping returned by `/scrub` is not stored server-side — hold onto it
 and send it back to `/unscrub`.
+
+## Phase 3: Chrome extension
+
+Adds a Scrub / Unscrub toolbar to the ChatGPT and Gemini compose box.
+Requires the phase 2 server running locally
+(`uvicorn anonymai.api:app --reload`).
+
+1. Open `chrome://extensions`, enable Developer mode.
+2. Click "Load unpacked", select the `extension/` directory.
+3. On chatgpt.com or gemini.google.com, type a message, click **Scrub**,
+   review the replacement text, then send it yourself as usual.
+4. After a reply comes back, click **Unscrub last reply** to see the
+   original values in a popup panel.
+
+Gemini's compose/reply selectors haven't been checked against a live tab
+(no browser access when this was built) — if the toolbar doesn't show up
+or "Unscrub" can't find the reply on gemini.google.com, the DOM selectors
+in `extension/content.js` (`COMPOSER_SELECTORS`/`ASSISTANT_SELECTORS`)
+need updating to match the current page.
+
+The mapping is held in memory for the tab only — reloading the page clears
+it, same as `/unscrub` never being backed by server-side storage.
