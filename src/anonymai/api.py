@@ -18,6 +18,7 @@ class ScrubRequest(BaseModel):
     text: str
     strategy: ScrubStrategy = ScrubStrategy.MOCK
     exclude_pii: list[PIIType] = []
+    known_mapping: dict[str, str] = {}
 
 
 class UnscrubRequest(BaseModel):
@@ -32,7 +33,9 @@ def find_pii_endpoint(req: TextRequest) -> list[PIIEntity]:
 
 @app.post("/scrub", response_model=ScrubResult)
 def scrub_endpoint(req: ScrubRequest) -> ScrubResult:
-    return scrub(req.text, strategy=req.strategy, exclude_pii=req.exclude_pii)
+    return scrub(
+        req.text, strategy=req.strategy, exclude_pii=req.exclude_pii, known_mapping=req.known_mapping
+    )
 
 
 @app.post("/unscrub")

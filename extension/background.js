@@ -12,7 +12,7 @@ async function call(path, body) {
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.action === "scrub") {
-    call("/scrub", { text: msg.text }).then(
+    call("/scrub", { text: msg.text, known_mapping: msg.known_mapping || {} }).then(
       (result) => sendResponse({ ok: true, result }),
       (err) => sendResponse({ ok: false, error: err.message }),
     );

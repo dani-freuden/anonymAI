@@ -129,7 +129,9 @@ def _pick_person_tokens(n: int, avoid: set[str]) -> list[str]:
     return random.sample(bank, k=n) if n <= len(bank) else random.choices(bank, k=n)
 
 
-def _person_replacements(entities: list[PIIEntity]) -> dict[str, str]:
+def _person_replacements(
+    entities: list[PIIEntity], known_mapping: dict[str, str] | None = None
+) -> dict[str, str]:
     """Map each distinct PERSON mention (lowercased) to a replacement name.
 
     A short mention (e.g. "Daniel") made up entirely of tokens from a
@@ -137,6 +139,11 @@ def _person_replacements(entities: list[PIIEntity]) -> dict[str, str]:
     reuses that mention's replacement tokens position-for-position, so the
     same person keeps the same fake name everywhere instead of each
     surface form getting an independently randomized one.
+
+    known_mapping (replacement -> original from earlier scrub() calls in
+    the same conversation) seeds the same alias matching, so a bare
+    "Daniel" in a later message can still alias to "Daniel Cohen" from an
+    earlier one even though this call never saw the full name.
     """
     seen: list[str] = []
     seen_set: set[str] = set()
@@ -147,6 +154,12 @@ def _person_replacements(entities: list[PIIEntity]) -> dict[str, str]:
     surface_forms = sorted(seen, key=lambda text: -len(text.split()))
 
     canonicals: list[tuple[list[str], list[str]]] = []
+    for replacement, original in (known_mapping or {}).items():
+        orig_tokens = original.lower().split()
+        repl_tokens = replacement.split()
+        if len(orig_tokens) == len(repl_tokens) and all(t.isalpha() for t in orig_tokens):
+            canonicals.append((orig_tokens, repl_tokens))
+
     replacement_by_text: dict[str, str] = {}
     for text in surface_forms:
         tokens = text.split()
@@ -163,11 +176,20 @@ def _person_replacements(entities: list[PIIEntity]) -> dict[str, str]:
 
 
 class MockScrubStrategy(Scrubber):
-    def scrub(self, text: str, entities: list[PIIEntity]) -> ScrubResult:
-        replacement_by_original: dict[str, str] = _person_replacements(entities)
+    def scrub(
+        self, text: str, entities: list[PIIEntity], known_mapping: dict[str, str] | None = None
+    ) -> ScrubResult:
+        known_mapping = known_mapping or {}
+        known_original_to_replacement = {o.lower(): r for r, o in known_mapping.items()}
+
+        replacement_by_original: dict[str, str] = _person_replacements(entities, known_mapping)
         for entity in entities:
             key = entity.text.lower()
-            if key not in replacement_by_original:
+            if key in replacement_by_original:
+                continue
+            if key in known_original_to_replacement:
+                replacement_by_original[key] = known_original_to_replacement[key]
+            else:
                 replacement_by_original[key] = _pick_replacement(entity.pii_type, entity.text)
 
         scrubbed_text = text
@@ -175,7 +197,7 @@ class MockScrubStrategy(Scrubber):
             replacement = replacement_by_original[entity.text.lower()]
             scrubbed_text = scrubbed_text[: entity.start] + replacement + scrubbed_text[entity.end :]
 
-        mapping = {}
+        mapping = dict(known_mapping)
         for entity in entities:
             replacement = replacement_by_original[entity.text.lower()]
             mapping[replacement] = entity.text

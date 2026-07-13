@@ -18,6 +18,7 @@ def scrub(
     strategy: ScrubStrategy = ScrubStrategy.MOCK,
     exclude_pii: list[PIIType] | None = None,
     entities: list[PIIEntity] | None = None,
+    known_mapping: dict[str, str] | None = None,
 ) -> ScrubResult:
     if entities is None:
         entities = find_pii(text)
@@ -25,7 +26,7 @@ def scrub(
     exclude_pii = exclude_pii or []
     entities = [e for e in entities if e.pii_type not in exclude_pii]
 
-    return _STRATEGIES[strategy].scrub(text, entities)
+    return _STRATEGIES[strategy].scrub(text, entities, known_mapping)
 
 
 def unscrub(text: str, result: ScrubResult) -> str:

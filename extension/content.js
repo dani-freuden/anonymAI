@@ -86,7 +86,7 @@ function onScrubClick(btn) {
   if (!text.trim()) return;
   btn.disabled = true;
   btn.classList.add("anonymai-busy");
-  chrome.runtime.sendMessage({ action: "scrub", text }, (res) => {
+  chrome.runtime.sendMessage({ action: "scrub", text, known_mapping: lastMapping || {} }, (res) => {
     btn.disabled = false;
     btn.classList.remove("anonymai-busy");
     if (!res?.ok) {
