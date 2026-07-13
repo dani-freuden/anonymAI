@@ -1,3 +1,5 @@
+import calendar
+import datetime
 import json
 import random
 import string
@@ -12,18 +14,18 @@ _WORD_BANK: dict[str, list[str]] = json.loads(
 
 _EMAIL_DOMAINS = ["example.com", "mailbox.net", "inboxpro.com", "cloudpost.io", "mailhub.org"]
 _URL_DOMAINS = ["example.com", "sample.org", "placeholder.net", "demo-site.io"]
-_MONTHS = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
-]
+
+
+def _random_str(charset: str, n: int) -> str:
+    return "".join(random.choices(charset, k=n))
 
 
 def _digits(n: int) -> str:
-    return "".join(random.choices(string.digits, k=n))
+    return _random_str(string.digits, n)
 
 
 def _fake_email() -> str:
-    local = "".join(random.choices(string.ascii_lowercase, k=8))
+    local = _random_str(string.ascii_lowercase, 8)
     return f"{local}@{random.choice(_EMAIL_DOMAINS)}"
 
 
@@ -37,16 +39,18 @@ def _fake_credit_card() -> str:
 
 def _fake_crypto() -> str:
     alphabet = string.ascii_letters + string.digits
-    return "1" + "".join(random.choices(alphabet, k=random.randint(25, 34)))
+    return "1" + _random_str(alphabet, random.randint(25, 34))
 
 
 def _fake_date_time() -> str:
-    return f"{random.choice(_MONTHS)} {random.randint(1, 28)}, {random.randint(1950, 2024)}"
+    year, month = random.randint(1950, 2024), random.randint(1, 12)
+    day = random.randint(1, calendar.monthrange(year, month)[1])
+    return datetime.date(year, month, day).strftime("%B %d, %Y")
 
 
 def _fake_iban() -> str:
-    country = "".join(random.choices(string.ascii_uppercase, k=2))
-    return f"{country}{_digits(2)}{''.join(random.choices(string.ascii_uppercase + string.digits, k=18))}"
+    country = _random_str(string.ascii_uppercase, 2)
+    return f"{country}{_digits(2)}{_random_str(string.ascii_uppercase + string.digits, 18)}"
 
 
 def _fake_ip_address() -> str:
@@ -58,7 +62,7 @@ def _fake_mac_address() -> str:
 
 
 def _fake_medical_license() -> str:
-    return "".join(random.choices(string.ascii_uppercase, k=2)) + _digits(7)
+    return _random_str(string.ascii_uppercase, 2) + _digits(7)
 
 
 def _fake_uk_nhs() -> str:
@@ -66,7 +70,7 @@ def _fake_uk_nhs() -> str:
 
 
 def _fake_url() -> str:
-    path = "".join(random.choices(string.ascii_lowercase, k=6))
+    path = _random_str(string.ascii_lowercase, 6)
     return f"https://{random.choice(_URL_DOMAINS)}/{path}"
 
 
@@ -90,13 +94,6 @@ def _fake_us_ssn() -> str:
     return f"{_digits(3)}-{_digits(2)}-{_digits(4)}"
 
 
-_GENERATED_TYPES = {
-    PIIType.EMAIL_ADDRESS, PIIType.PHONE_NUMBER, PIIType.CREDIT_CARD, PIIType.CRYPTO,
-    PIIType.DATE_TIME, PIIType.IBAN_CODE, PIIType.IP_ADDRESS, PIIType.MAC_ADDRESS,
-    PIIType.MEDICAL_LICENSE, PIIType.UK_NHS, PIIType.URL, PIIType.US_BANK_NUMBER,
-    PIIType.US_DRIVER_LICENSE, PIIType.US_ITIN, PIIType.US_PASSPORT, PIIType.US_SSN,
-}
-
 _GENERATORS = {
     PIIType.EMAIL_ADDRESS: _fake_email,
     PIIType.PHONE_NUMBER: _fake_phone,
@@ -115,22 +112,29 @@ _GENERATORS = {
     PIIType.US_PASSPORT: _fake_us_passport,
     PIIType.US_SSN: _fake_us_ssn,
 }
+_GENERATED_TYPES = set(_GENERATORS)
 
 
-def _pick_replacement(pii_type: PIIType, original: str) -> str:
+def _pick_replacement(pii_type: PIIType, original: str, avoid: set[str] = frozenset()) -> str:
     if pii_type in _GENERATED_TYPES:
         return _GENERATORS[pii_type]()
-    choices = [w for w in _WORD_BANK[pii_type.value] if w.lower() != original.lower()]
-    return random.choice(choices)
+    choices = [w for w in _WORD_BANK[pii_type.value] if w.lower() != original.lower() and w.lower() not in avoid]
+    # ponytail: falls back to ignoring `avoid` if it exhausts the bank; a repeat
+    # replacement word is far cheaper to accept than crashing on an empty choice.
+    return random.choice(choices or _WORD_BANK[pii_type.value])
 
 
 def _pick_person_tokens(n: int, avoid: set[str]) -> list[str]:
     bank = [w for w in _WORD_BANK[PIIType.PERSON.value] if w.lower() not in avoid]
+    if n > len(bank):
+        bank = _WORD_BANK[PIIType.PERSON.value]  # ponytail: same fallback as _pick_replacement
     return random.sample(bank, k=n) if n <= len(bank) else random.choices(bank, k=n)
 
 
 def _person_replacements(
-    entities: list[PIIEntity], known_mapping: dict[str, str] | None = None
+    entities: list[PIIEntity],
+    known_mapping: dict[str, str] | None = None,
+    used_replacement_words: set[str] = frozenset(),
 ) -> dict[str, str]:
     """Map each distinct PERSON mention (lowercased) to a replacement name.
 
@@ -157,18 +161,32 @@ def _person_replacements(
     for replacement, original in (known_mapping or {}).items():
         orig_tokens = original.lower().split()
         repl_tokens = replacement.split()
-        if len(orig_tokens) == len(repl_tokens) and all(t.isalpha() for t in orig_tokens):
+        # Multi-token only: a single-token known mention (e.g. a LOCATION like
+        # "Paris") can't tell us anything a full alias for a *shorter* mention
+        # would need, and single-token exact reuse is already handled by
+        # known_original_to_replacement in scrub() — restricting to >=2 tokens
+        # keeps this from mistaking an unrelated same-shaped mapping entry
+        # (any type) for a PERSON canonical.
+        if (
+            len(orig_tokens) >= 2
+            and len(orig_tokens) == len(repl_tokens)
+            and all(any(c.isalpha() for c in t) for t in orig_tokens)
+        ):
             canonicals.append((orig_tokens, repl_tokens))
 
     replacement_by_text: dict[str, str] = {}
     for text in surface_forms:
         tokens = text.split()
+        # ponytail: when two distinct canonicals both contain a shared token
+        # (e.g. "Daniel Cohen" and "David Cohen"), a later bare "Cohen"
+        # resolves to whichever was registered first — real disambiguation
+        # needs coreference resolution, out of scope here.
         match = next((c for c in canonicals if set(tokens) <= set(c[0])), None)
         if match:
             orig_tokens, repl_tokens = match
             replacement = " ".join(repl_tokens[orig_tokens.index(t)] for t in tokens)
         else:
-            repl_tokens = _pick_person_tokens(len(tokens), avoid=set(tokens))
+            repl_tokens = _pick_person_tokens(len(tokens), avoid=set(tokens) | used_replacement_words)
             replacement = " ".join(repl_tokens)
             canonicals.append((tokens, repl_tokens))
         replacement_by_text[text] = replacement
@@ -181,8 +199,14 @@ class MockScrubStrategy(Scrubber):
     ) -> ScrubResult:
         known_mapping = known_mapping or {}
         known_original_to_replacement = {o.lower(): r for r, o in known_mapping.items()}
+        # Words already spent as replacements this conversation: excluding them
+        # from new picks keeps two different originals from colliding onto the
+        # same replacement (which would silently overwrite one's mapping entry).
+        used_replacement_words = {w.lower() for repl in known_mapping for w in repl.split()}
 
-        replacement_by_original: dict[str, str] = _person_replacements(entities, known_mapping)
+        replacement_by_original: dict[str, str] = _person_replacements(
+            entities, known_mapping, used_replacement_words
+        )
         for entity in entities:
             key = entity.text.lower()
             if key in replacement_by_original:
@@ -190,7 +214,9 @@ class MockScrubStrategy(Scrubber):
             if key in known_original_to_replacement:
                 replacement_by_original[key] = known_original_to_replacement[key]
             else:
-                replacement_by_original[key] = _pick_replacement(entity.pii_type, entity.text)
+                replacement_by_original[key] = _pick_replacement(
+                    entity.pii_type, entity.text, used_replacement_words
+                )
 
         scrubbed_text = text
         for entity in sorted(entities, key=lambda e: e.start, reverse=True):
