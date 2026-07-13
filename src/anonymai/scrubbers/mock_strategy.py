@@ -124,9 +124,47 @@ def _pick_replacement(pii_type: PIIType, original: str) -> str:
     return random.choice(choices)
 
 
+def _pick_person_tokens(n: int, avoid: set[str]) -> list[str]:
+    bank = [w for w in _WORD_BANK[PIIType.PERSON.value] if w.lower() not in avoid]
+    return random.sample(bank, k=n) if n <= len(bank) else random.choices(bank, k=n)
+
+
+def _person_replacements(entities: list[PIIEntity]) -> dict[str, str]:
+    """Map each distinct PERSON mention (lowercased) to a replacement name.
+
+    A short mention (e.g. "Daniel") made up entirely of tokens from a
+    longer mention seen elsewhere in the same text (e.g. "Daniel Cohen")
+    reuses that mention's replacement tokens position-for-position, so the
+    same person keeps the same fake name everywhere instead of each
+    surface form getting an independently randomized one.
+    """
+    seen: list[str] = []
+    seen_set: set[str] = set()
+    for entity in entities:
+        if entity.pii_type == PIIType.PERSON and entity.text.lower() not in seen_set:
+            seen_set.add(entity.text.lower())
+            seen.append(entity.text.lower())
+    surface_forms = sorted(seen, key=lambda text: -len(text.split()))
+
+    canonicals: list[tuple[list[str], list[str]]] = []
+    replacement_by_text: dict[str, str] = {}
+    for text in surface_forms:
+        tokens = text.split()
+        match = next((c for c in canonicals if set(tokens) <= set(c[0])), None)
+        if match:
+            orig_tokens, repl_tokens = match
+            replacement = " ".join(repl_tokens[orig_tokens.index(t)] for t in tokens)
+        else:
+            repl_tokens = _pick_person_tokens(len(tokens), avoid=set(tokens))
+            replacement = " ".join(repl_tokens)
+            canonicals.append((tokens, repl_tokens))
+        replacement_by_text[text] = replacement
+    return replacement_by_text
+
+
 class MockScrubStrategy(Scrubber):
     def scrub(self, text: str, entities: list[PIIEntity]) -> ScrubResult:
-        replacement_by_original: dict[str, str] = {}
+        replacement_by_original: dict[str, str] = _person_replacements(entities)
         for entity in entities:
             key = entity.text.lower()
             if key not in replacement_by_original:
